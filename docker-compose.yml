@@ -1,0 +1,39 @@
+networks:
+  build-up-network:
+    driver: bridge
+
+services:
+  build-up-server:
+    image: build-up-server:latest
+    container_name: build_up_server
+    build:
+      context: ./build-up-server
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:8080"
+    restart: always
+    networks:
+      - build-up-network
+  
+  build-up-registry:
+    image: registry:2
+    container_name: build-up-registry
+    environment:
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+    restart: always
+    networks:
+      - build-up-network
+
+  build-up-nginx:
+    image: nginx:latest
+    container_name: build-up-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - build-up-registry
+      - build-up-server
+    restart: always
+    networks:
+      - build-up-network
