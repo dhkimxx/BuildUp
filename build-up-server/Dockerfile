@@ -1,14 +1,10 @@
-FROM golang:1.23
+FROM python:3.11-slim
 
-WORKDIR /build-up-server
+WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY *.go ./
+COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o build-up-server
-
-EXPOSE 8080
-
-CMD ["./build-up-server"]
+CMD ["python", "main.py"]

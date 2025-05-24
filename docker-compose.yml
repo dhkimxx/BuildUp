@@ -5,7 +5,7 @@ networks:
 services:
   build-up-server:
     image: build-up-server:latest
-    container_name: build_up_server
+    container_name: build-up-server
     build:
       context: ./build-up-server
       dockerfile: Dockerfile
