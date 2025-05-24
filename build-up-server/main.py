@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.openapi.docs import get_swagger_ui_html
 from pydantic import BaseModel
 import jwt
 import datetime
@@ -137,20 +136,6 @@ async def create_user(user: User):
         User: 생성된 사용자 정보
     """
     return user
-
-
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    """
-    커스텀 Swagger UI 페이지
-    """
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="BuildUp Registry Auth API",
-        oauth2_redirect_url="/docs/oauth2-redirect",
-        swagger_js_url="/swagger-ui-bundle.js",
-        swagger_css_url="/swagger-ui.css",
-    )
 
 
 if __name__ == "__main__":
