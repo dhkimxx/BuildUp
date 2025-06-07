@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -6,31 +6,11 @@ import jwt
 import datetime
 import logging
 from typing import Optional, List
-
-# API 문서화를 위한 메타데이터
-description = """
-BuildUp Registry Authentication Server 🚀
-
-## 기능
-* 도커 레지스트리 인증
-* 사용자 관리
-* 접근 권한 관리
-"""
+import psutil
 
 app = FastAPI(
     title="BuildUp Registry Auth",
-    description=description,
     version="1.0.0",
-    terms_of_service="http://example.com/terms/",
-    contact={
-        "name": "BuildUp Team",
-        "url": "http://example.com/contact/",
-        "email": "admin@example.com",
-    },
-    license_info={
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
-    },
 )
 
 # 로깅 설정
@@ -64,26 +44,24 @@ class RegistryAccess(BaseModel):
     actions: List[str]
 
 
-@app.get("/", tags=["기본"])
-async def root():
-    """
-    서버 상태 확인 엔드포인트
-    """
-    return {"message": "BuildUp Registry Auth Server"}
-
-
-@app.get("/health", tags=["모니터링"])
+@app.get("/health", tags=["Monitoring"])
 async def health_check():
-    """
-    서버 상태 확인 엔드포인트
-
-    Returns:
-        dict: 서버 상태 정보
-    """
-    return {"status": "healthy"}
+    return Response(content="OK", status_code=200)
 
 
-@app.get("/v2/token", tags=["인증"])
+@app.get("/stats", tags=["Monitoring"])
+async def stats_check():
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    net_io = psutil.net_io_counters()
+
+    res = f"CPU Usage: {cpu_percent}% \
+        \nMemory Usage: {memory.used / (1024 ** 2):.2f} MB / {memory.total / (1024 ** 2):.2f} MB \
+        \nReceived: {net_io.bytes_recv / (1024 ** 2):.2f} MB, Sent: {net_io.bytes_sent / (1024 ** 2):.2f} MB"
+    return Response(content=res, status_code=200)
+
+
+@app.get("/v2/token", tags=["Authentication"])
 async def get_token(
     request: Request, credentials: HTTPBasicCredentials = Depends(security)
 ):
@@ -124,7 +102,7 @@ async def get_token(
         )
 
 
-@app.post("/users/", response_model=User, tags=["사용자"])
+@app.post("/users/", response_model=User, tags=["User"])
 async def create_user(user: User):
     """
     새로운 사용자를 생성하는 엔드포인트
